@@ -1,0 +1,13 @@
+
+flask==3.0.0
+flask-cors==4.0.0
+werkzeug==3.0.1
+spacy==3.8.0
+spacy-layout==0.0.12
+pdfminer.six==20221105
+transformers==4.36.0
+torch==2.1.0
+wikipedia==1.4.0
+sentencepiece==0.1.99
+accelerate==0.25.0
+scispacy==0.5.4

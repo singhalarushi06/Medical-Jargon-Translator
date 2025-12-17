@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Report Translator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 60px 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .upload-section h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .upload-section p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .file-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .file-info.show {
+            display: block;
+        }
+
+        .file-info p {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .processing.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1.1em;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            min-height: 300px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .text-content {
+            line-height: 1.8;
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .glossary-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+
+        .glossary-term {
+            font-weight: 700;
+            color: #667eea;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+        }
+
+        .glossary-definition {
+            color: #555;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            display: none;
+            padding: 20px;
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            border-radius: 5px;
+            margin-top: 20px;
+            color: #c62828;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .upload-section {
+                padding: 40px 20px;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tab {
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Medical Report Translator</h1>
+            <p>Upload your medical report and get it translated into simple, easy-to-understand language</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section" id="uploadSection">
+                <div class="upload-icon">📄</div>
+                <h2>Upload Your Medical Report</h2>
+                <p>Drag and drop your PDF file here, or click to browse</p>
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+                <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
+            </div>
+
+            <div class="file-info" id="fileInfo">
+                <p id="fileInfoText"></p>
+                <button class="btn" onclick="processFile()" style="margin-top: 15px;">
+                    Translate Report
+                </button>
+            </div>
+
+            <div class="error" id="errorMsg"></div>
+
+            <div class="processing" id="processing">
+                <div class="spinner"></div>
+                <h3>Processing Your Report...</h3>
+                <p>This may take a minute. We're simplifying the medical jargon for you.</p>
+            </div>
+
+            <div class="results" id="results">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('simplified')">Simplified Report</button>
+                    <button class="tab" onclick="switchTab('original')">Original Text</button>
+                    <button class="tab" onclick="switchTab('glossary')">Medical Terms Glossary</button>
+                </div>
+
+                <div class="tab-content active" id="simplified-content">
+                    <div class="text-content" id="simplifiedText"></div>
+                </div>
+
+                <div class="tab-content" id="original-content">
+                    <div class="text-content" id="originalText"></div>
+                </div>
+
+                <div class="tab-content" id="glossary-content">
+                    <div id="glossaryList"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn" onclick="downloadText('simplified')">
+                        📥 Download Simplified Report
+                    </button>
+                    <button class="btn-secondary" onclick="downloadText('original')">
+                        Download Original
+                    </button>
+                    <button class="btn-secondary" onclick="resetUpload()">
+                        Upload New Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+        let processedData = null;
+        
+        // CONFIGURE YOUR BACKEND URL HERE
+        const API_URL = 'http://localhost:5000/api';
+
+        // Drag and drop functionality
+        const uploadSection = document.getElementById('uploadSection');
+
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                selectedFile = files[0];
+                showFileInfo();
+            } else {
+                showError('Please upload a PDF file');
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type === 'application/pdf') {
+                selectedFile = file;
+                showFileInfo();
+            } else {
+                showError('Please select a valid PDF file');
+            }
+        }
+
+        function showFileInfo() {
+            const fileInfo = document.getElementById('fileInfo');
+            const fileInfoText = document.getElementById('fileInfoText');
+            fileInfoText.textContent = `Selected: ${selectedFile.name} (${(selectedFile.size / 1024).toFixed(2)} KB)`;
+            fileInfo.classList.add('show');
+            hideError();
+        }
+
+        async function processFile() {
+            if (!selectedFile) {
+                showError('Please select a file first');
+                return;
+            }
+
+            // Show processing UI
+            document.getElementById('processing').classList.add('show');
+            document.getElementById('fileInfo').style.display = 'none';
+            hideError();
+
+            // Create FormData to send file
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                // Call backend API
+                const response = await fetch(`${API_URL}/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    processedData = {
+                        original: data.original,
+                        simplified: data.simplified,
+                        glossary: data.glossary
+                    };
+                    displayResults();
+                } else {
+                    throw new Error(data.error || 'Processing failed');
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('processing').classList.remove('show');
+                showError(`Error processing file: ${error.message}. Make sure your Flask server is running on ${API_URL}`);
+            }
+        }
+
+        function displayResults() {
+            document.getElementById('processing').classList.remove('show');
+            document.getElementById('results').classList.add('show');
+
+            // Display texts
+            document.getElementById('originalText').textContent = processedData.original;
+            document.getElementById('simplifiedText').textContent = processedData.simplified;
+
+            // Display glossary
+            const glossaryList = document.getElementById('glossaryList');
+            glossaryList.innerHTML = '';
+            
+            if (processedData.glossary && processedData.glossary.length > 0) {
+                processedData.glossary.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'glossary-item';
+                    div.innerHTML = `
+                        <div class="glossary-term">${item.term}</div>
+                        <div class="glossary-definition">${item.definition}</div>
+                    `;
+                    glossaryList.appendChild(div);
+                });
+            } else {
+                glossaryList.innerHTML = '<p>No medical terms detected in this document.</p>';
+            }
+        }
+
+        function switchTab(tabName) {
+            // Remove active class from all tabs and contents
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            // Add active class to selected tab and content
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-content`).classList.add('active');
+        }
+
+        function downloadText(type) {
+            let text, filename;
+            
+            if (type === 'simplified') {
+                text = processedData.simplified;
+                filename = 'simplified_medical_report.txt';
+            } else {
+                text = processedData.original;
+                filename = 'original_medical_report.txt';
+            }
+
+            // Create download
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function resetUpload() {
+            selectedFile = null;
+            processedData = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').classList.remove('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('processing').classList.remove('show');
+            hideError();
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.classList.add('show');
+        }
+
+        function hideError() {
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
